@@ -1,0 +1,14 @@
+.table-view {
+    border-collapse: separate;
+    font-size: 12px;
+}
+.table-view tbody > tr > td {
+    font-size: 0.875em;
+    background: #f5f5f5;
+    border-top: 10px solid #fff;
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+.table-view thead > tr > th {
+    border-bottom:  0px !important;
+}

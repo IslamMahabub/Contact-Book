@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Contact Book</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+
+    <div class="container-fluid"> 
+        <div class="row border-bottom">
+            <div class="col-12">
+                <h4 class="text-center m-3 font-weight-bolder">Contact Book</h4>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <div class="row pb-2">
+                    <div class="col-6" id="search_by_date">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Start Date (d/m/Y)" v-model="start_date"/>
+                            <input type="text" class="form-control" placeholder="End Date (d/m/Y)" v-model="end_date"/>
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="button" @click="onSearch"><span><i class="fa fa-search"></i></span>  Search</button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-3 text-right"></div>
+                    <div class="col-3 text-right">
+                        <button class="btn btn-success" data-toggle="modal" data-target="#add_modal" id="add"><span><i class="fa fa-plus"></i></span>  Add New</button>
+                    </div>
+                </div>
+                <table class="table table-view">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Company</th>
+                            <th>Address</th>
+                            <th>Created On</th>
+                            <th>Updated On</th>
+                            <th class="text-center"><span><i class="fa fa-cog"></i></span></th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>
+                                <div id="search_name">
+                                    <input type="text" class="form-control" placeholder="Enter name ..." v-model="keyword" @keyup="onAutoSearch">
+                                </div>
+                            </th>
+                            <th>
+                                <div id="search_phone">
+                                    <input type="text" class="form-control" placeholder="Enter phone ..." v-model="keyword" @keyup="onAutoSearch">
+                                </div>
+                            </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            </th>
+                        </tr>
+                    </thead>                    
+                    <tbody id="view">
+                        <tr v-for="item, key in data_list">
+                            <td>{{ key + 1 }}</td>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.phone }}</td>
+                            <td>{{ item.company }}</td>
+                            <td>{{ item.address }}</td>
+                            <td>{{ item.created_on }}</td>
+                            <td>{{ item.updated_on }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#update_modal" @click="openUpdate(key)"><span><i class="fa fa-edit"></i></span></button>
+                                <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#delete_modal" @click="openDelete(key)"><span><i class="fa fa-trash"></i></span></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                Total: {{total}}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+
+    <div id="add_component">
+        <div class="modal fade" id="add_modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content font-weight-bolder">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Add Contact</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit="save" ref="add_form" method="POST">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" name="name" class="form-control" required v-model="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="number" name="phone" class="form-control" required v-model="phone">
+                            </div>
+                            <div class="form-group">
+                                <label for="company">Company</label>
+                                <input type="text" name="company" class="form-control" required v-model="company">
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <textarea name="address" class="form-control" required v-model="address"></textarea>
+                            </div>
+                            <input type="hidden" name="created_on" class="form-control" required v-model="created_on">
+                            <input type="hidden" name="updated_on" class="form-control" required v-model="updated_on">
+                            <input type="submit" name="save" id="save" class="btn btn-success" value="Save" />
+                            <input type="reset" class="btn btn-primary" />
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="close">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="update_component">
+        <div class="modal fade" id="update_modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content font-weight-bolder">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Update Contact</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit="save" ref="update_form" method="POST">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" name="name" class="form-control" required v-model="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="number" name="phone" class="form-control" required v-model="phone">
+                            </div>
+                            <div class="form-group">
+                                <label for="company">Company</label>
+                                <input type="text" name="company" class="form-control" required v-model="company">
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <textarea name="address" class="form-control" required v-model="address"></textarea>
+                            </div>
+                            <input type="hidden" name="created_on" class="form-control" required v-model="created_on">
+                            <input type="hidden" name="updated_on" class="form-control" required v-model="updated_on">
+                            <input type="submit" name="save" id="save" class="btn btn-success" value="Save" />
+                            <input type="reset" class="btn btn-primary" />
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="close">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete_component">
+        <div class="modal fade" id="delete_modal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content font-weight-bolder">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Are you sure to delete this contact ?</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click="delete_yes">Yes</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal" id="close">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript" src="js/popper.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script type="text/javascript">
+        function today(){
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0'); 
+            var yyyy = today.getFullYear();
+
+            today = dd + '/' + mm + '/' + yyyy;
+            return today;
+        }
+
+        const view = new Vue({
+            el: '#view',
+            data: {
+                data_list: {
+                    name: '',
+                    phone: '',
+                    company: '',
+                    address: '',
+                    created_on: '',
+                    updated_on: ''
+                },
+                total: 0
+            },
+            mounted(){
+                this.get_data_list()
+            },
+            methods: {
+                get_data_localStorage()
+                {
+                    if(localStorage.getItem("contact_book")){
+                        var data = JSON.parse(localStorage.getItem("contact_book"))
+                        return data;
+                    }
+                },
+                get_data_list()
+                {
+                    this.data_list = this.get_data_localStorage()
+                    this.total = this.get_data_localStorage().length
+                    return this.get_data_localStorage().length
+                },
+                openDelete(key)
+                {
+                    delete_component.index = key
+                },
+                openUpdate(key)
+                {
+                    update_component.name = this.data_list[key].name
+                    update_component.phone = this.data_list[key].phone
+                    update_component.company = this.data_list[key].company
+                    update_component.address = this.data_list[key].address
+                    update_component.created_on = this.data_list[key].created_on
+                    //update_component.updated_on = this.data_list[key].updated_on
+                    update_component.updated_on = today()
+                    update_component.index = key
+                },
+            }
+        });
+
+        const add_component = new Vue({
+            el: '#add_component',
+            data: {
+                name: '',
+                phone: '',
+                company: '',
+                address: '',
+                created_on: today(),
+                updated_on: today()
+            },
+            methods: {
+                save(event){
+                    event.preventDefault()
+                    var add_data = new FormData(this.$refs.add_form)
+                    let json_object_data = {}
+
+                    for (const [key, value]  of add_data) {
+                        json_object_data[key] = value
+                    }
+
+                    if(window.localStorage.getItem('contact_book'))
+                    {
+                        var data_save = view.get_data_localStorage()
+                    }
+                    else
+                    {
+                        var data_save = new Array()
+                    }
+                    
+                    data_save.push(json_object_data);
+                    window.localStorage.setItem('contact_book',JSON.stringify(data_save))
+                    view.get_data_list()
+                    this.name = ''
+                    this.phone = ''
+                    this.company = ''
+                    this.address = ''
+                    this.created_on = ''
+                    this.updated_on = ''
+                    $('#add_modal').modal('hide')
+                    $(".modal-fade").modal("hide")
+                    $(".modal-backdrop").remove()
+                }
+            },
+        });
+
+        const delete_component = new Vue({
+            el: '#delete_component',
+            data: {
+                index: ''
+            },
+            methods: {
+                delete_yes()
+                {
+                    var data = view.get_data_localStorage()
+                    data.splice(this.index, 1)
+
+                    window.localStorage.setItem('contact_book', JSON.stringify(data))
+                    view.get_data_list()
+                    $('#delete_modal').modal('hide')
+                    $(".modal-fade").modal("hide")
+                    $(".modal-backdrop").remove()
+                }
+            }
+        });
+
+        const update_component = new Vue({
+            el: '#update_component',
+            data: {
+                index: '',
+                name: '',
+                phone: '',
+                company: '',
+                address: '',
+                created_on: '',
+                updated_on: ''
+            },
+            methods: {
+                save(event)
+                {
+                    event.preventDefault()
+                    var update_data = new FormData(this.$refs.update_form)
+                    let json_object_data = {}
+
+                    for (const [key, value]  of update_data) {
+                        json_object_data[key] = value
+                    }
+
+                    var data_save = view.get_data_localStorage()
+                    data_save.splice(this.index, 1, json_object_data)
+                    window.localStorage.setItem('contact_book',JSON.stringify(data_save))
+                    view.get_data_list()
+                    $('#update_modal').modal('hide')
+                    $(".modal-fade").modal("hide")
+                    $(".modal-backdrop").remove()
+                }
+            }   
+        });
+
+        const search_by_date = new Vue({
+            el: '#search_by_date',
+            data: {
+                start_date: '',
+                end_date: ''
+            },
+            methods: {
+                onSearch()
+                {
+                    var data = view.get_data_localStorage();
+
+                    var data_search = data.filter((data) => {
+                        return this.check_date(this.start_date, this.end_date, data.created_on)
+                    });
+                    view.data_list = data_search
+                },
+
+                check_date(start_date,end_date,created_date)
+                {
+                    var d1 = start_date.split("/")
+                    var d2 = end_date.split("/")
+
+                    var from = new Date(d1[2], parseInt(d1[1])-1, d1[0]) // -1 because months are from 0 to 11
+                    var to   = new Date(d2[2], parseInt(d2[1])-1, d2[0]) // -1 because months are from 0 to 11
+
+                    var parts = created_date.split("/")
+                    var date= new Date(parts[2], parseInt(parts[1]) - 1, parts[0])
+                    if (date >= from && date <= to) {
+                        return true
+                    }
+                    return false   
+                }
+            }
+        });
+
+        const search_name = new Vue({
+            el: '#search_name',
+            data: {
+                keyword: ''
+            },
+            methods: {
+                onAutoSearch()
+                {
+                    console.log(this.keyword)
+                    var data = view.get_data_localStorage();
+
+                    var data_search = data.filter((data) => {
+                        return data.name.toLowerCase().indexOf(this.keyword) !== -1;
+                    });
+                    view.data_list = data_search
+                }
+            }
+        });
+
+        const search_phone = new Vue({
+            el: '#search_phone',
+            data: {
+                keyword: ''
+            },
+            methods: {
+                onAutoSearch()
+                {
+                    console.log(this.keyword)
+                    var data = view.get_data_localStorage();
+
+                    var data_search = data.filter((data) => {
+                        return data.phone.startsWith(this.keyword)
+                    });
+                    view.data_list = data_search
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
